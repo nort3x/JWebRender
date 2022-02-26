@@ -1,0 +1,8 @@
+version: "3.5"
+services:
+  jwebsnapshot:
+    build: .
+    container_name: jwebsnapshot
+    ports:
+      - "7878:8080"
+    restart: always
