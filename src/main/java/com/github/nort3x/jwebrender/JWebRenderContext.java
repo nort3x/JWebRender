@@ -13,18 +13,20 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @Slf4j
 public class JWebRenderContext extends Application {
 
     Stage priStage;
+    HBox p = new HBox();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.priStage = primaryStage;
 
-        var p = new HBox();
+
         p.setAlignment(Pos.CENTER);
         p.getChildren().add(new Label("JWebRender!"));
         var s = new Scene(p);
@@ -34,7 +36,7 @@ public class JWebRenderContext extends Application {
 
     @PostConstruct
     void construct() throws InterruptedException {
-        var t = new Thread(()->{
+        var t = new Thread(() -> {
             launch(this.getClass());
         });
         t.setDaemon(false);
@@ -44,32 +46,36 @@ public class JWebRenderContext extends Application {
 
 
 
-
-    public void doRenderAndDump(int width, int height, String format, double pixelScale, InputStream inps, OutputStream oups) throws InterruptedException {
+    public void doRenderAndDump(int width, int height, int xOffset, int yOffset, String format, double pixelScale, InputStream inps, OutputStream oups) throws Exception {
         CountDownLatch cdl = new CountDownLatch(1);
+        AtomicReference<Exception> exceptionAtomicReference = new AtomicReference<>(null);
+        Platform.runLater(() -> {
 
-        Platform.runLater(()->{
-
-            try {
-                Stage s = new Stage();
-                s.initOwner(priStage);
-                new Renderer(
-                        width,
-                        height,
-                        format,
-                        pixelScale,
-                        inps,
-                        oups,
-                        () -> {
-                            s.close();
-                            log.debug("render completed");
-                            cdl.countDown();
-                        }
-                ).render(s);
-            }catch (IOException e){
-                log.warn("io exception",e);
-            }
+            Stage s = new Stage();
+            s.initOwner(priStage);
+            new Renderer(
+                    width,
+                    height,
+                    xOffset,
+                    yOffset,
+                    format,
+                    pixelScale,
+                    inps,
+                    oups,
+                    () -> {
+                        s.close();
+                        log.debug("render completed");
+                        cdl.countDown();
+                    },
+                    (e) -> {
+                        s.close();
+                        log.warn("render exception", e);
+                        exceptionAtomicReference.set(e);
+                    }
+            ).render(s);
         });
         cdl.await();
+        if(exceptionAtomicReference.get() != null)
+            throw exceptionAtomicReference.get();
     }
 }

@@ -21,12 +21,14 @@ public class Controller {
     @ApiResponse(
             description = "format supports: PEG, PNG, GIF, BMP and WBMP"
     )
-    @PostMapping("/")
+    @PostMapping("/html")
     public void render(@RequestBody byte[] html,
                        @RequestParam int width,
                        @RequestParam int height,
+                       @RequestParam int x_offset,
+                       @RequestParam int y_offset,
                        @RequestParam String format,
-                       @RequestParam double pixelScale, HttpServletResponse response) throws IOException, InterruptedException {
+                       @RequestParam double pixelScale, HttpServletResponse response) throws Exception {
 
         var formatLower = format.toLowerCase();
         if (    formatLower.equals("png") ||
@@ -39,7 +41,31 @@ public class Controller {
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
 
-        jWebRenderContext.doRenderAndDump(width, height, format.toUpperCase(), pixelScale, new ByteArrayInputStream(html), response.getOutputStream());
+        jWebRenderContext.doRenderAndDump(width, height, x_offset, y_offset, format.toUpperCase(), pixelScale, new ByteArrayInputStream(html), response.getOutputStream());
     }
 
+
+    @ApiResponse(
+            description = "format supports: PEG, PNG, GIF, BMP and WBMP"
+    )
+    @PostMapping("/url")
+    public void renderUrl(@RequestBody String url,
+                       @RequestParam int width,
+                       @RequestParam int height,
+                       @RequestParam int x_offset,
+                       @RequestParam int y_offset,
+                       @RequestParam String format,
+                       @RequestParam double pixelScale, HttpServletResponse response) throws Exception {
+
+        var formatLower = format.toLowerCase();
+        if (    formatLower.equals("png") ||
+                formatLower.equals("jpg") ||
+                formatLower.equals("gif") ||
+                formatLower.equals("bmp")
+        )
+            response.setContentType("image/"+format);
+        else
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+            jWebRenderContext.doRenderAndDump(width, height, x_offset, y_offset, format.toUpperCase(), pixelScale, DownloadHtmlPage.download(url), response.getOutputStream());
+    }
 }
