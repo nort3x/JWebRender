@@ -5,7 +5,7 @@ COPY build.gradle settings.gradle  gradlew $APP_HOME
 COPY gradle $APP_HOME/gradle
 RUN ./gradlew build || return 0
 RUN apt-get update 
-RUN apt-get install -y xvfb libgl1-mesa-dev libgtk-3-0
+RUN apt-get install -y xvfb libgl1-mesa-dev libgtk-3-0 libasound2-dev
 RUN whoami
 COPY . .
 RUN Xvfb :99 & export DISPLAY=:99
