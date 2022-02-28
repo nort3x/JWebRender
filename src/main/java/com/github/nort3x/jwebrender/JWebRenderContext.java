@@ -46,7 +46,7 @@ public class JWebRenderContext extends Application {
 
 
 
-    public void doRenderAndDump(int width, int height, int xOffset, int yOffset, String format, double pixelScale, InputStream inps, OutputStream oups) throws Exception {
+    public void doRenderAndDump(int width, int height, int xOffset, int yOffset, String format, double pixelScale,long wait, InputStream inps, OutputStream oups) throws Exception {
         CountDownLatch cdl = new CountDownLatch(1);
         AtomicReference<Exception> exceptionAtomicReference = new AtomicReference<>(null);
         Platform.runLater(() -> {
@@ -60,6 +60,7 @@ public class JWebRenderContext extends Application {
                     yOffset,
                     format,
                     pixelScale,
+                    wait,
                     inps,
                     oups,
                     () -> {
